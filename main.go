@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/filipjaj/linear-ai/internal/linear"
+	"github.com/filipjaj/linear-cli/internal/linear"
 	"github.com/urfave/cli/v3"
 	"google.golang.org/genai"
 )

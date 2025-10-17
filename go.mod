@@ -1,4 +1,4 @@
-module github.com/filipjaj/linear-ai
+module github.com/filipjaj/linear-cli
 
 go 1.25.2
 

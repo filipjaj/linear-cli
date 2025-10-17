@@ -53,6 +53,7 @@ func createIssueWithAI(ctx context.Context, chat *genai.Chat, linearClient *line
 }
 
 func main() {
+	teamID :=os.Getenv("LINEAR_TEAM_ID")
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		fmt.Printf("%s %s (commit %s)\n", cmd.Root().Name, version, commit)
 	}
@@ -87,7 +88,7 @@ func main() {
 			
 			// Join all arguments into a single message
 			message := strings.Join(cmd.Args().Slice(), " ")
-			return createIssueWithAI(ctx, chat, &linearClient, user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78", message)
+			return createIssueWithAI(ctx, chat, &linearClient, user.ID, teamID, message)
 		},
 		Commands: []*cli.Command{
 			{
@@ -121,7 +122,7 @@ func main() {
 					
 					// Join all arguments into a single message
 					message := strings.Join(cmd.Args().Slice(), " ")
-					return createIssueWithAI(ctx, chat, &linearClient, user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78", message)
+					return createIssueWithAI(ctx, chat, &linearClient, user.ID, teamID, message)
 				},
 			},
 		},

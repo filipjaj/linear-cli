@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/filipjaj/linear-ai/internal/linear"
 	"github.com/urfave/cli/v3"
+	"google.golang.org/genai"
 )
 
 var (
@@ -18,6 +20,37 @@ var (
 
 
 const master_prompt = `Du er en AI-assistent som hjelper med å opprette oppgaver i Linear. Basert på beskrivelsen av oppgaven skal du lage en oppgave i Linear, med en passende tittel, beskrivelse målet er å være så kort og konsis som mulig for å beholde nødvendige informasjon, outputen skal være json i formatet {"title": "title", "description": "description"}`
+
+// createIssueWithAI processes a message through AI and creates a Linear issue
+func createIssueWithAI(ctx context.Context, chat *genai.Chat, linearClient *linear.Client, userID string, teamID string, message string) error {
+	res, err := SendMessage(chat, message)
+	if err != nil {
+		return fmt.Errorf("AI request failed: %v", err)
+	}
+
+	text := res.Text()
+	var issue struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+	err = json.Unmarshal([]byte(text), &issue)
+	if err != nil {
+		return fmt.Errorf("failed to parse AI response: %v", err)
+	}
+
+	fmt.Printf("AI generated: %s\n", issue.Title)
+	
+	success, err := linearClient.CreateIssue(issue.Title, issue.Description, userID, teamID)
+	if err != nil {
+		return fmt.Errorf("failed to create issue: %v", err)
+	}
+	
+	if success {
+		fmt.Println("✓ Issue created successfully")
+	}
+	
+	return nil
+}
 
 func main() {
 	cli.VersionPrinter = func(cmd *cli.Command) {
@@ -42,10 +75,20 @@ func main() {
 	}
 
 	app := &cli.Command{
-		Name:  "linear",
-		Usage: "a cli for linear, help you create tasks with ai",
-		Version:              version,
+		Name:                  "linear",
+		Usage:                 "a cli for linear, help you create tasks with ai",
+		Version:               version,
 		EnableShellCompletion: true,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			// Default action: process all args through AI pipeline
+			if cmd.NArg() == 0 {
+				return fmt.Errorf("please provide a task description")
+			}
+			
+			// Join all arguments into a single message
+			message := strings.Join(cmd.Args().Slice(), " ")
+			return createIssueWithAI(ctx, chat, &linearClient, user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78", message)
+		},
 		Commands: []*cli.Command{
 			{
 				Name:  "create",
@@ -70,40 +113,15 @@ func main() {
 			},
 			{
 				Name:  "ai",
-				Usage: "create an issue with ai",
+				Usage: "create an issue with ai (explicit subcommand, same as default behavior)",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println("created issue with ai")
-					var title string
-					if cmd.NArg() > 0 {
-						title = cmd.Args().First()
+					if cmd.NArg() == 0 {
+						return fmt.Errorf("please provide a task description")
 					}
-					if title == "" {
-						return fmt.Errorf("title is required")
-					}
-					res, err := SendMessage(chat, title)
-					if err != nil {
-						fmt.Println(err)
-						return err
-					}
-
-					text := res.Text()
-					var issue struct {
-						Title string `json:"title"`
-						Description string `json:"description"`
-					}
-					err = json.Unmarshal([]byte(text), &issue)
-					if err != nil {
-						fmt.Println(err)
-						return err
-					}
-					fmt.Println(issue)
-					i, err := linearClient.CreateIssue(issue.Title,  issue.Description,user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78")
-					if err != nil {
-						fmt.Println(err)
-						return err
-					}
-					fmt.Println(i)
-					return nil
+					
+					// Join all arguments into a single message
+					message := strings.Join(cmd.Args().Slice(), " ")
+					return createIssueWithAI(ctx, chat, &linearClient, user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78", message)
 				},
 			},
 		},

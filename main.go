@@ -1,3 +1,14 @@
+/*
+Linear CLI is a CLI tool for creating Linear issues using AI. Simply describe your task in natural language, and let Gemini AI generate a properly formatted issue.
+
+Usage:
+
+	linear-cli <description...>
+	linear-cli ai <description...>
+	linear-cli create <title>
+	linear-cli --version
+	linear-cli --help
+*/
 package main
 
 import (

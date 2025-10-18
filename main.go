@@ -18,7 +18,6 @@ var (
 	commit  = "unknown"
 )
 
-
 const master_prompt = `Du er en AI-assistent som hjelper med å opprette oppgaver i Linear. Basert på beskrivelsen av oppgaven skal du lage en oppgave i Linear, med en passende tittel, beskrivelse målet er å være så kort og konsis som mulig for å beholde nødvendige informasjon, outputen skal være json i formatet {"title": "title", "description": "description"}`
 
 // createIssueWithAI processes a message through AI and creates a Linear issue
@@ -39,21 +38,21 @@ func createIssueWithAI(ctx context.Context, chat *genai.Chat, linearClient *line
 	}
 
 	fmt.Printf("AI generated: %s\n", issue.Title)
-	
+
 	success, err := linearClient.CreateIssue(issue.Title, issue.Description, userID, teamID)
 	if err != nil {
 		return fmt.Errorf("failed to create issue: %v", err)
 	}
-	
+
 	if success {
 		fmt.Println("✓ Issue created successfully")
 	}
-	
+
 	return nil
 }
 
 func main() {
-	teamID :=os.Getenv("LINEAR_TEAM_ID")
+	teamID := os.Getenv("LINEAR_TEAM_ID")
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		fmt.Printf("%s %s (commit %s)\n", cmd.Root().Name, version, commit)
 	}
@@ -85,7 +84,7 @@ func main() {
 			if cmd.NArg() == 0 {
 				return fmt.Errorf("please provide a task description")
 			}
-			
+
 			// Join all arguments into a single message
 			message := strings.Join(cmd.Args().Slice(), " ")
 			return createIssueWithAI(ctx, chat, &linearClient, user.ID, teamID, message)
@@ -103,7 +102,7 @@ func main() {
 					if title == "" {
 						return fmt.Errorf("title is required")
 					}
-					i, err := linearClient.CreateIssue(title,"", user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78")
+					i, err := linearClient.CreateIssue(title, "", user.ID, "05071e04-d370-43c6-97cb-2a83b3214b78")
 					if err != nil {
 						fmt.Println(err)
 						return err
@@ -119,7 +118,7 @@ func main() {
 					if cmd.NArg() == 0 {
 						return fmt.Errorf("please provide a task description")
 					}
-					
+
 					// Join all arguments into a single message
 					message := strings.Join(cmd.Args().Slice(), " ")
 					return createIssueWithAI(ctx, chat, &linearClient, user.ID, teamID, message)

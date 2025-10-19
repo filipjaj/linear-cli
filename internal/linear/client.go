@@ -1,16 +1,12 @@
 package linear
 
 import (
-	// this will automatically load your .env file:
-
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
+	"github.com/filipjaj/linear-cli/internal/credentials"
 	"github.com/hasura/go-graphql-client"
-
-	_ "github.com/joho/godotenv/autoload"
 )
 
 // Client -
@@ -21,12 +17,15 @@ type Client struct {
 
 // NewClient -
 func NewClient() Client {
-	
-	
 	return Client{
 		graphqlClient: graphql.NewClient("https://api.linear.app/graphql", http.DefaultClient).
 		WithRequestModifier(func(r *http.Request) {
-			apiKey := os.Getenv("LINEAR_API_KEY")
+			apiKey, err := credentials.GetLinearAPIKey()
+			if err != nil {
+				// Log error but don't panic - let API call fail with auth error
+				fmt.Printf("Warning: failed to get Linear API key from keyring: %v\n", err)
+				return
+			}
 			r.Header.Set("Authorization", apiKey)
 		}),
 	}
@@ -99,4 +98,22 @@ func (c *Client) CreateIssue(issueTitle string,description string, assigneeID st
 	
 	
 	return resp.CreateIssue.Success, nil
+}
+
+func (c *Client) GetCycle() (*Issues, error) {
+	client := c.graphqlClient
+	var resp struct {
+		Viewer struct {
+			Cycle struct {
+				Issues Issues `json:"issues"`
+			} `json:"cycle"`
+		} `json:"viewer"`
+	}
+	
+	err := client.Query(context.Background(), &resp, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	return &resp.Viewer.Cycle.Issues, nil
 }

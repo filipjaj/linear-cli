@@ -2,13 +2,17 @@ package main
 
 import (
 	"context"
-	"os"
+	"fmt"
 
+	"github.com/filipjaj/linear-cli/internal/credentials"
 	"google.golang.org/genai"
 )
 
 func createGeminiClient() (*genai.Client, error) {
-	apiKey := os.Getenv("GOOGLE_API_KEY")
+	apiKey, err := credentials.GetGoogleAPIKey()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Google API key from keyring: %w", err)
+	}
 	client, err := genai.NewClient(context.Background(), &genai.ClientConfig{
 		APIKey:  apiKey,
 		Backend: genai.BackendGeminiAPI,
@@ -42,8 +46,8 @@ func createGeminiChat(client *genai.Client) (*genai.Chat, error) {
 	return chat, nil
 }
 
-func SendMessage(chat *genai.Chat, message string) (*genai.GenerateContentResponse, error) {
-	text, err := chat.SendMessage(context.Background(), genai.Part{
+func SendMessage(ctx context.Context, chat *genai.Chat, message string) (*genai.GenerateContentResponse, error) {
+	text, err := chat.SendMessage(ctx, genai.Part{
 		Text: master_prompt,
 	}, genai.Part{
 		Text: message,

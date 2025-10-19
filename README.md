@@ -24,19 +24,21 @@ go install github.com/filipjaj/linear-cli
 
 ## Configuration
 
-Create a `.env` file in your working directory or set environment variables:
+Run the setup command to securely store your credentials in the system keyring:
 
 ```bash
-LINEAR_API_KEY="lin_api_..."
-GOOGLE_API_KEY="your-google-api-key"
-LINEAR_TEAM_ID="your-team-id"
+linear-cli setup
 ```
 
-You can copy `.env.example` to get started:
+You'll be prompted to enter:
+- **Linear API Key**: Get it from [Linear Settings](https://linear.app/settings/api)
+- **Google API Key**: Get it from [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
+- **Linear Team ID**: Find it in your Linear team settings
 
-```bash
-cp .env.example .env
-```
+Your credentials are stored securely in your system's keyring:
+- macOS: Keychain
+- Linux: Secret Service API (gnome-keyring, kwallet)
+- Windows: Credential Manager
 
 ## Usage
 
@@ -72,6 +74,7 @@ linear-cli create "Issue Title"
 
 | Command | Description |
 |---------|-------------|
+| `linear-cli setup` | Configure credentials securely in system keyring |
 | `linear-cli <description...>` | **Default**: Create issue using AI (all args combined) |
 | `linear-cli ai <description...>` | Create issue using AI (explicit subcommand) |
 | `linear-cli create <title>` | Create issue manually without AI |
